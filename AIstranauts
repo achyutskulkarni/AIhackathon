@@ -1,0 +1,54 @@
+from flask import Flask, jsonify, request
+from flask_cors import CORS  # Import CORS
+
+app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
+
+# Example list of insurance plans
+insurance_plans = [
+    {
+        "id": 1,
+        "name": "Basic Health Plan",
+        "premium": 200,
+        "coverage": ["Emergency Care", "Primary Care"],
+        "eligibility": {"age": 18, "pre_existing_conditions": False}
+    },
+    {
+        "id": 2,
+        "name": "Family Health Plan",
+        "premium": 400,
+        "coverage": ["Emergency Care", "Primary Care", "Pediatric Care"],
+        "eligibility": {"age": 0, "pre_existing_conditions": True}
+    },
+    {
+        "id": 3,
+        "name": "Comprehensive Health Plan",
+        "premium": 600,
+        "coverage": ["Emergency Care", "Primary Care", "Specialist Visits", "Preventive Care"],
+        "eligibility": {"age": 18, "pre_existing_conditions": True}
+    }
+]
+
+# Endpoint to get insurance recommendations based on user input
+@app.route('/recommend_insurance', methods=['POST'])
+def recommend_insurance():
+    data = request.get_json()  # Get JSON data from POST request
+    if not data:
+        return jsonify({"error": "No input data provided"}), 400
+
+    user_age = data.get("age")
+    has_pre_existing_conditions = data.get("pre_existing_conditions")
+
+    recommended_plans = [
+        plan for plan in insurance_plans
+        if user_age >= plan["eligibility"]["age"] and
+           (has_pre_existing_conditions or not plan["eligibility"]["pre_existing_conditions"])
+    ]
+
+    return jsonify({
+        "recommended_plans": recommended_plans
+    })
+
+# Main function to run the Flask app
+if __name__ == "__main__":
+    app.run(host="localhost", port=8083, debug=True)
